@@ -7,8 +7,9 @@ class GildedRose
     "Sulfuras, Hand of Ragnaros"
   ].freeze
 
-  BRIE_NAME = /Aged Brie/.freeze
-  BACKSTAGE_PASS_NAME = /Backstage passes to a TAFKAL80ETC concert/.freeze
+  BRIE_NAME = "Aged Brie".freeze
+  BACKSTAGE_PASS_NAME = "Backstage passes to a TAFKAL80ETC concert".freeze
+  CONJURED_NAME = /^Conjured/.freeze
 
   def initialize(items)
     @items = items
@@ -20,10 +21,13 @@ class GildedRose
         return
       end
 
-      if item_is_brie?(item)
-        update_brie_quality!(item)
-      elsif item_is_backstage_pass?(item)
-        update_backstage_pass_quality!(item)
+      case item.name
+      when BRIE_NAME
+        update_brie_item_quality!(item)
+      when BACKSTAGE_PASS_NAME
+        update_backstage_pass_item_quality!(item)
+      when CONJURED_NAME
+        update_conjured_item_quality!(item)
       else
         update_normal_item_quality!(item)
       end
@@ -32,11 +36,9 @@ class GildedRose
     end
   end
 
-  def item_is_brie?(item)
-    BRIE_NAME.match(item.name)
-  end
+  private
 
-  def update_brie_quality!(item)
+  def update_brie_item_quality!(item)
     if item.sell_in <= 0
       change_quality_by!(item, 2)
     else
@@ -44,11 +46,7 @@ class GildedRose
     end
   end
 
-  def item_is_backstage_pass?(item)
-    BACKSTAGE_PASS_NAME.match(item.name)
-  end
-
-  def update_backstage_pass_quality!(item)
+  def update_backstage_pass_item_quality!(item)
     if item.sell_in <= 0
       item.quality = 0
     elsif item.sell_in <= 5
@@ -58,6 +56,11 @@ class GildedRose
     else
       change_quality_by!(item, 1)
     end
+  end
+
+  def update_conjured_item_quality!(item)
+    update_normal_item_quality!(item)
+    update_normal_item_quality!(item)
   end
 
   def update_normal_item_quality!(item)
@@ -72,7 +75,7 @@ class GildedRose
     new_quality = item.quality + delta
     item.quality = new_quality.clamp(MINIMAL_QUALITY, MAXIMAL_QUALITY)
   end
-  
+
 end
 
 class Item
